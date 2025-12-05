@@ -74,7 +74,11 @@ if st.button('Consultar'):
                     f"""
                         |Preço Unitário Médio|Preço Unitário Mediano|Desvio Padrão|Coeficiente de Variação|
                         |:------------------:|:--------------------:|:-----------:|:---------------------:|
+<<<<<<< HEAD
                         |**{formatar_preco_reais(mean)}**|**{formatar_preco_reais(median)}**|**{str(std).replace('.', ',')}**|**{str(cv).replace('.', ',')}**|
+=======
+                        |**{formatar_preco_reais(mean)}**|**{formatar_preco_reais(median)}**|**{std.replace('.', ',')}**|**{cv.replace('.', ',')}**|
+>>>>>>> refs/remotes/origin/main
                     """
                 )
                 df_completo['precoUnitario'] = df_completo['precoUnitario'].apply(formatar_preco_reais)
