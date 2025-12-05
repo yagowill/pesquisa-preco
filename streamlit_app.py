@@ -42,7 +42,7 @@ st.title("PESQUISA DE PREÇOS DE MATERIAIS E/OU SERVIÇOS")
 # Disclaimer
 st.markdown("Utilize o catálogo de materiais e serviços do Governo Federal para encontrar o código desejado.")
 
-components.iframe("https://catalogo.compras.gov.br/cnbs-web/busca", height=450, width=720, scrolling=True)
+components.iframe("https://catalogo.compras.gov.br/cnbs-web/busca", height=450, width=1080, scrolling=True)
 
 tipo_item = st.selectbox("Selecione o tipo de item para consulta", ['Material', 'Serviço'], key='tipo_item')
 codigo_item_catalogo = st.text_input("Código do Item de Catálogo", value="", key='codigo_item_catalogo')
@@ -74,7 +74,7 @@ if st.button('Consultar'):
                     f"""
                         |Preço Unitário Médio|Preço Unitário Mediano|Desvio Padrão|Coeficiente de Variação|
                         |:------------------:|:--------------------:|:-----------:|:---------------------:|
-                        |**{formatar_preco_reais(mean)}**|**{formatar_preco_reais(median)}**|**{std}**|**{cv}**|
+                        |**{formatar_preco_reais(mean)}**|**{formatar_preco_reais(median)}**|**{str(std).replace('.', ',')}**|**{str(cv).replace('.', ',')}**|
                     """
                 )
                 df_completo['precoUnitario'] = df_completo['precoUnitario'].apply(formatar_preco_reais)
