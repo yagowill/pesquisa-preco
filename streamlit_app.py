@@ -1,14 +1,14 @@
 import streamlit as st
 import requests
 import pandas as pd
+import streamlit.components.v1 as components
 
 # Função para formatar preço em reais
 def formatar_preco_reais(valor):
     if valor is None:
         return 'Preço não disponível'
     else:
-        return f'{valor:,.2f}'.replace(',', 'X').replace('.', ',').replace('X', '.')
-        # return f'R$ {valor:,.2f}'.replace(',', 'X').replace('.', ',').replace('X', '.')
+        return f'R$ {valor:,.2f}'.replace(',', 'X').replace('.', ',').replace('X', '.')
 
 # URLs atualizadas
 consultarItemMaterial_base_url = 'https://dadosabertos.compras.gov.br/modulo-pesquisa-preco/1_consultarMaterial'
@@ -17,7 +17,7 @@ consultarItemServico_base_url = 'https://dadosabertos.compras.gov.br/modulo-pesq
 def obter_itens(tipo_item, codigo_item_catalogo, pagina, tamanho_pagina):
     url = consultarItemMaterial_base_url if tipo_item == 'Material' else consultarItemServico_base_url
     params = {
-        'pagina': pagina,
+        'pagina': pagina,   
         'tamanhoPagina':tamanho_pagina,  # Ajuste para 500 itens por página
         'codigoItemCatalogo': codigo_item_catalogo
     }
@@ -40,22 +40,20 @@ def obter_itens(tipo_item, codigo_item_catalogo, pagina, tamanho_pagina):
 st.title("PESQUISA DE PREÇOS DE MATERIAIS E/OU SERVIÇOS")    
 
 # Disclaimer
-st.markdown("Localize o código do material ou serviço de forma simples e rápida. https://catalogo.compras.gov.br/cnbs-web/busca")
+st.markdown("Utilize o catálogo de materiais e serviços do Governo Federal para encontrar o código desejado.")
+
+components.iframe("https://catalogo.compras.gov.br/cnbs-web/busca", height=450, width=720, scrolling=True)
 
 tipo_item = st.selectbox("Selecione o tipo de item para consulta", ['Material', 'Serviço'], key='tipo_item')
 codigo_item_catalogo = st.text_input("Código do Item de Catálogo", value="", key='codigo_item_catalogo')
-pagina = st.number_input("Indique a página para consulta", min_value=1, value=1, step=1)
-tamanho_pagina = st.number_input("Indique o tamanho da página para consulta", min_value=10, value=500, step=1)
+pagina = 1
+tamanho_pagina = 500  # Definido para 500 itens por página
 
 if st.button('Consultar'):
     if codigo_item_catalogo:  # Verifica se o código do item de catálogo não está vazio
         itens, paginas_restantes, total_paginas = obter_itens(tipo_item, codigo_item_catalogo, pagina, tamanho_pagina)
         if itens:  # Ensure 'itens' is not empty before proceeding
-            st.session_state['itens'] = itens
-            st.session_state['paginas_restantes'] = paginas_restantes
-            st.session_state['total_paginas'] = total_paginas
-            st.write(f"Total de páginas: {total_paginas}")
-            st.write(f"Páginas restantes: {paginas_restantes}")            
+            st.session_state['itens'] = itens      
         else:
             st.error("Nenhum item encontrado. Por favor, tente com um código diferente ou verifique a conexão com a API.")
     else:
@@ -67,15 +65,20 @@ if st.button('Consultar'):
             if isinstance(st.session_state['itens'], list) and all(isinstance(item, dict) for item in st.session_state['itens']):
                 df_completo = pd.json_normalize(st.session_state['itens'])
                 # Apply formatting
-                df_completo = df_completo.applymap(lambda x: formatar_preco_reais(x) if isinstance(x, float) else x)
-                                
-                csv = df_completo.to_csv(sep=';', index=False).encode('utf-8')
-                st.download_button(
-                    label="Download dos dados em CSV",
-                    data=csv,
-                    file_name='dados_consulta.csv',
-                    mime='text/csv',
-                )              
+                dataframe = df_completo
+                mean = dataframe['precoUnitario'].mean()
+                median = dataframe['precoUnitario'].median()
+                st.markdown(
+                    f"""
+                        |Preço Unitário Médio|Preço Unitário Mediano|
+                        |:------------------:|:--------------------:|
+                        |**{formatar_preco_reais(mean)}**|**{formatar_preco_reais(median)}**|
+                    """
+                )
+                df_completo['precoUnitario'] = df_completo['precoUnitario'].apply(formatar_preco_reais)
+                st.write(df_completo)
+                
+                              
                          
             else:
                 st.error("Formato dos itens inválido para normalização.")
