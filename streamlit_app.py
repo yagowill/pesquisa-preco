@@ -68,11 +68,13 @@ if st.button('Consultar'):
                 dataframe = df_completo
                 mean = dataframe['precoUnitario'].mean()
                 median = dataframe['precoUnitario'].median()
+                std = dataframe['precoUnitario'].std()
+                cv = ((std / mean) * 100)
                 st.markdown(
                     f"""
-                        |Preço Unitário Médio|Preço Unitário Mediano|
-                        |:------------------:|:--------------------:|
-                        |**{formatar_preco_reais(mean)}**|**{formatar_preco_reais(median)}**|
+                        |Preço Unitário Médio|Preço Unitário Mediano|Desvio Padrão|Coeficiente de Variação|
+                        |:------------------:|:--------------------:|:-----------:|:---------------------:|
+                        |**{formatar_preco_reais(mean)}**|**{formatar_preco_reais(median)}**|**{std}**|**{cv}**|
                     """
                 )
                 df_completo['precoUnitario'] = df_completo['precoUnitario'].apply(formatar_preco_reais)
