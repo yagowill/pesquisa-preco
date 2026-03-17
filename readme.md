@@ -1,67 +1,91 @@
 # Pesquisa de Preços - Dados Abertos (Compras Governamentais)
 
-[](https://pesquisa-preco.streamlit.app/)
-
-Ferramenta desenvolvida para agilizar a pesquisa de preços de mercado utilizando a API de Dados Abertos do Governo Federal.
+⚡ Ferramenta para agilizar a pesquisa de preços de mercado usando a API de Dados Abertos de Compras do Governo Federal.
 
 🔗 **Acesse a aplicação online:** [https://pesquisa-preco.streamlit.app/](https://pesquisa-preco.streamlit.app/)
 
-> **Nota sobre o Fork:** Este projeto é um *fork* de uma ferramenta anterior que realizava a consulta e gerava apenas um arquivo CSV para download. Nesta versão, o código foi refatorado para exibir os resultados **diretamente na tela** e aprimorado com métricas estatísticas avançadas para uma análise imediata dos preços de referência.
+> **Nota sobre o Fork:** Este projeto é um fork de uma ferramenta anterior. Aqui, o resultado é exibido na tela e também exportável como CSV, com métricas estatísticas úteis para compor mapas de preços.
 
 ## 🎯 Funcionalidades
 
-  - **Consulta Flexível:** Permite pesquisar tanto por **Materiais** quanto por **Serviços**.
-  - **Busca de Códigos:** Integração via *iframe* com o [Catálogo de Materiais e Serviços do Governo Federal](https://catalogo.compras.gov.br/cnbs-web/busca) para facilitar a localização do `Código do Item`.
-  - **Análise Estatística Completa:** Exibe instantaneamente indicadores fundamentais para a composição de mapas de preços, auxiliando na identificação de sobrepreço ou inexequibilidade:
-      - **Média**
-      - **Mediana**
-      - **Desvio Padrão**
-      - **Coeficiente de Variação**
-  - **Visualização de Dados:** Apresenta a tabela completa de resultados (Dataframe) diretamente na interface do usuário, formatada com valores em Reais (R$).
+- Consulta por **Material** ou **Serviço** (selectbox de tipo de item).
+- Integração via iframe com o [Catálogo de Materiais e Serviços do Governo Federal](https://catalogo.compras.gov.br/cnbs-web/busca).
+- Parâmetros de consulta:
+  - `Código do Item de Catálogo` (obrigatório)
+  - `Página` (mín 1, padrão 1)
+  - `Itens por página` (mín 10, padrão 500)
+- Requisição com timeout de 30 segundos (`requests.Timeout`).
+- Tratamento de erros:
+  - timeout
+  - erros HTTP (4xx/5xx)
+  - requisições inválidas
+- Estatísticas calculadas (a partir de `precoUnitario`):
+  - Média
+  - Mediana
+  - Desvio Padrão
+  - Coeficiente de Variação
+- Exibição de resultados em tabela (`st.dataframe`) com colunas renomeadas em português.
+- Download de CSV com `;` como separador e codificação `utf-8-sig` para Excel.
 
 ## 🛠️ Tecnologias Utilizadas
 
-  - [Streamlit](https://streamlit.io/)
-  - [Pandas](https://pandas.pydata.org/)
-  - [Requests](https://pypi.org/project/requests/)
+- Python
+- Streamlit
+- Pandas
+- Requests
 
 ## 🚀 Como Executar Localmente
 
-Se preferir rodar a aplicação na sua própria máquina:
-
 ### Pré-requisitos
 
-Certifique-se de ter o Python instalado.
+- Python 3.8+
+- Conexão com internet (API pública do Compras.gov.br)
 
-1.  Clone este repositório.
-2.  Instale as dependências listadas no arquivo `requirements.txt`:
-
-<!-- end list -->
+### Instalação
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Rodando a Aplicação
-
-Navegue até a pasta do projeto e execute:
+### Execução
 
 ```bash
 streamlit run streamlit_app.py
 ```
 
-A aplicação será aberta no seu navegador padrão (geralmente em `http://localhost:8501`).
+A app abrirá em `http://localhost:8501`.
 
-## 📖 Como Usar
+## 📖 Uso da Aplicação
 
-1.  **Identifique o Código:** Utilize a janela do catálogo (iframe) na tela inicial para buscar o item desejado e copiar seu código (CATMAT ou CATSER).
-2.  **Configure a Busca:** Selecione o tipo ("Material" ou "Serviço") e cole o código no campo indicado.
-3.  **Consulte:** Clique no botão `Consultar`.
-4.  **Analise:** Verifique o painel estatístico no topo (Média, Mediana, Desvio Padrão, CV) e explore a tabela detalhada com os registros de compras.
+1. Acesse a área de busca do catálogo no iframe e encontre o código do item (`CATMAT` ou `CATSER`).
+2. Selecione `Tipo de item` (Material/Serviço).
+3. Cole o `Código do Item de Catálogo`.
+4. Ajuste `Página` e `Itens por página`, se necessário.
+5. Clique em `Consultar`.
 
-## 📡 Fonte de Dados
+### Comportamento esperado
 
-O sistema consome dados diretamente dos *endpoints* do Portal de Dados Abertos de Compras Governamentais:
+- Se o campo código estiver vazio, aparece aviso de preenchimento obrigatório.
+- Ao realizar a consulta, serão exibidos:
+  - total de páginas na API
+  - páginas restantes
+  - estatísticas de preço unitário
+  - tabela detalhada de resultados
+- Botão para exportar CSV fica disponível quando há resultados.
 
-  * `modulo-pesquisa-preco/1_consultarMaterial`
-  * `modulo-pesquisa-preco/3_consultarServico`
+## 📡 Endpoints
+
+- `https://dadosabertos.compras.gov.br/modulo-pesquisa-preco/1_consultarMaterial`
+- `https://dadosabertos.compras.gov.br/modulo-pesquisa-preco/3_consultarServico`
+
+## 🧩 Formato CSV gerado
+
+- Delimitador: `;`
+- Codificação: `utf-8-sig` (BOM)
+- Colunas renomeadas em português, conforme mapeamento em `streamlit_app.py`.
+
+## 🛠️ Observações de implementação
+
+- Campos `precoUnitario` formatados para exibição em real brasileiro (`R$ xx.xxx,xx`).
+- Erros de API são mostrados no app via `st.error`.
+- Caso nenhum item seja encontrado, mensagem orienta para verificar o código.
